@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PedidosNet.Data;
+using PedidosNet.Domain;
 using PedidosNet.DTOs;
 using PedidosNet.Models;
 
@@ -11,10 +12,12 @@ namespace PedidosNet.Controllers;
 public class PedidoController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IPedidoFactory _pedidoFactory;
 
-    public PedidoController(AppDbContext context)
+    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory)
     {
         _context = context;
+        _pedidoFactory = pedidoFactory;
     }
 
     [HttpGet]
@@ -47,6 +50,10 @@ public class PedidoController : ControllerBase
         if (cliente is null)
             return BadRequest("Cliente não encontrado.");
 
+        //Regra 1: Cliente bloqueado nem chega a criar pedido
+        if(cliente.Bloqueado)
+            return BadRequest("Cliente bloqueado não pode criar pedidos.");
+
         var itens = new List<ItemPedido>();
 
         foreach (var itemRequest in request.Itens)
@@ -65,17 +72,7 @@ public class PedidoController : ControllerBase
             });
         }
 
-        var pedido = new Pedido
-        {
-            Id = Guid.NewGuid(),
-            ClienteId = cliente.Id,
-            Status = "Pendente",
-            DataCriacao = DateTime.Now,
-            Itens = itens
-        };
-
-        // Calcula o total baseado nos itens
-        pedido.Total = pedido.Itens.Sum(i => i.Preco * i.Quantidade);
+        var pedido = _pedidoFactory.Criar(cliente, itens);
 
         // ⚠️ Regras de negócio direto no controller — o primeiro sinal amarelo
         // piscando no painel . A partir daqui, cada nova regra
