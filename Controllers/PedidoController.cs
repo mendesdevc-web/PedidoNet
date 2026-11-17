@@ -74,9 +74,6 @@ public class PedidoController : ControllerBase
 
         var pedido = _pedidoFactory.Criar(cliente, itens);
 
-        // ⚠️ Regras de negócio direto no controller — o primeiro sinal amarelo
-        // piscando no painel . A partir daqui, cada nova regra
-        // (cliente corporativo, campanha, valor mínimo...) só engorda este método.
         if (cliente.Vip)
             pedido.Total -= pedido.Total * 0.10m;
 
@@ -87,5 +84,45 @@ public class PedidoController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(pedido.Id);
+    }
+
+    [HttpPost("kits")]
+    public async Task<IActionResult> CriarKit(CreatePedidoKitRequest request)
+    {
+        var cliente = await _context.Clientes.FindAsync(request.ClienteId);
+
+        if (cliente is null)
+            return BadRequest("Cliente não encontrado.");
+
+        if (cliente.Bloqueado)
+            return BadRequest("Cliente bloqueado não pode criar pedidos.");
+
+        var builder = new KitPromocionalBuilder(_pedidoFactory).ParaCliente(cliente);
+
+        try
+        {
+            foreach (var itemRequest in request.Itens)
+            {
+                var produto = await _context.Produtos.FindAsync(itemRequest.ProdutoId);
+
+                if (produto is null)
+                    return BadRequest($"Produto {itemRequest.ProdutoId} não encontrado.");
+                
+                builder.AddProduto(produto, itemRequest.Quantidade);
+            }
+
+           if(!string.IsNullOrWhiteSpace(request.Cupom))
+                builder.AplicarCupom(request.Cupom);
+
+           var pedido = builder.Build();
+
+           _context.Pedidos.Add(pedido);
+           await _context.SaveChangesAsync();
+           return Ok(pedido.Id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

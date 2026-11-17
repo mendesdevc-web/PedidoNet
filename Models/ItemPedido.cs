@@ -10,6 +10,8 @@ public class ItemPedido
     public Guid ProdutoId { get; set; }
     public Produto? Produto { get; set; }
 
+    public Decimal Peso { get; set; }
+
     // Nome e preço copiados do Produto no momento
     // da compra (denormalização
     // proposital: sem isso, mudar o preço de um
