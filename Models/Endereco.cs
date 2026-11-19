@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿
+using System.Text.RegularExpressions;
 
 namespace PedidosNet.Models
 {
@@ -12,8 +13,14 @@ namespace PedidosNet.Models
         public string Cidade { get; private set; }
         public string Estado { get; private set; }
 
-        public Endereco( string cep, string logradouro, string numero, string bairro, 
-            string cidade, string estado, string complemento = "")
+        public Endereco(
+            string cep,
+            string logradouro,
+            string numero,
+            string bairro,
+            string cidade,
+            string estado,
+            string complemento = "")
         {
             ValidarCep(cep);
 
@@ -31,19 +38,21 @@ namespace PedidosNet.Models
             Cidade = cidade;
             Estado = estado;
         }
-      
+
         private static void ValidarCampo(string valor, string nome)
         {
             if (string.IsNullOrWhiteSpace(valor))
-                throw new ArgumentException($"{nome} é obrigadório", nome);
+                throw new ArgumentException($"{nome} é obrigatório.", nome);
         }
 
         private static void ValidarCep(string cep)
         {
-            if (string.IsNullOrWhiteSpace(cep) || 
+            if (string.IsNullOrWhiteSpace(cep) ||
                 !Regex.IsMatch(cep, @"^\d{5}-\d{3}$"))
             {
-                throw new ArgumentException("Cep Invalido. Formato esperado: 000000-000.", nameof(cep));
+                throw new ArgumentException(
+                    "CEP inválido. Formato esperado: 00000-000.",
+                    nameof(cep));
             }
         }
     }

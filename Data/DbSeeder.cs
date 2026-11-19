@@ -30,13 +30,15 @@ public static class DbSeeder
             return;
 
         // CLIENTES
+
+        // CLIENTES
         var clientes = new List<Cliente>
         {
             new(
                 ClienteAnaId,
                 "Ana Ferreira",
                 "ana.ferreira@pedidosnet.com.br",
-                new Endereco("Av. Americana", "458", "Centro", "15098-045", "São Paulo", "SP"),
+                new Endereco("15098-045", "Av. Americana", "458", "Centro", "São Paulo", "SP"),
                 SegmentoCliente.Vip,
                 new DateTime(2024, 06, 22)),
 
@@ -44,7 +46,7 @@ public static class DbSeeder
                 ClienteBrunoId,
                 "Bruno Martins",
                 "bruno.martins@pedidosnet.com.br",
-                new Endereco("Rua das Flores", "120", "Centro", "15000-100", "São José do Rio Preto", "SP"),
+                new Endereco("15000-100", "Rua das Flores", "120", "Centro", "São José do Rio Preto", "SP"),
                 SegmentoCliente.Normal,
                 new DateTime(2024, 08, 15)),
 
@@ -52,7 +54,7 @@ public static class DbSeeder
                 ClienteCarlaId,
                 "Carla Souza",
                 "carla.souza@pedidosnet.com.br",
-                new Endereco("Av. Brasil", "850", "Jardim América", "15045-200", "São José do Rio Preto", "SP"),
+                new Endereco("15045-200", "Av. Brasil", "850", "Jardim América", "São José do Rio Preto", "SP"),
                 SegmentoCliente.Corporativo,
                 new DateTime(2024, 09, 10)),
 
@@ -60,10 +62,11 @@ public static class DbSeeder
                 ClienteDaniloId,
                 "Danilo Ribeiro",
                 "danilo.ribeiro@pedidosnet.com.br",
-                new Endereco("Rua São Paulo", "320", "Vila Nova", "15025-300", "São José do Rio Preto", "SP"),
+                new Endereco("15025-300", "Rua São Paulo", "320", "Vila Nova", "São José do Rio Preto", "SP"),
                 SegmentoCliente.Normal,
                 new DateTime(2025, 01, 20))
         };
+
 
         db.Clientes.AddRange(clientes);
 
