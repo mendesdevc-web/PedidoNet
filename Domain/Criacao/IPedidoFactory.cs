@@ -1,6 +1,6 @@
 ﻿using PedidosNet.Models;
 
-namespace PedidosNet.Domain
+namespace PedidosNet.Domain.Criacao
 {
     public interface IPedidoFactory
     {

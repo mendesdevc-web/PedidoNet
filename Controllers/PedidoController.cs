@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PedidosNet.Data;
 using PedidosNet.Domain;
+using PedidosNet.Domain.Criacao;
+using PedidosNet.Domain.Descontos;
 using PedidosNet.DTOs;
 using PedidosNet.Models;
 
@@ -13,11 +15,13 @@ public class PedidoController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IPedidoFactory _pedidoFactory;
+    private readonly SeledorDeDescontos _seledorDeDescontos;
 
-    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory)
+    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos)
     {
         _context = context;
         _pedidoFactory = pedidoFactory;
+        _seledorDeDescontos = seledorDeDescontos;
     }
 
     [HttpGet]
@@ -74,16 +78,7 @@ public class PedidoController : ControllerBase
 
         var pedido = _pedidoFactory.Criar(cliente, itens);
 
-        if (cliente.Vip)
-            pedido.Total -= pedido.Total * 0.10m;
-
-        if (pedido.Total > 2000)
-            pedido.Total -= pedido.Total * 0.05m;
-
-        _context.Pedidos.Add(pedido);
-        await _context.SaveChangesAsync();
-
-        return Ok(pedido.Id);
+        return Ok(await FinalizarPedido(pedido));
     }
 
     [HttpPost("kits")]
@@ -107,22 +102,29 @@ public class PedidoController : ControllerBase
 
                 if (produto is null)
                     return BadRequest($"Produto {itemRequest.ProdutoId} não encontrado.");
-                
+
                 builder.AddProduto(produto, itemRequest.Quantidade);
             }
 
-           if(!string.IsNullOrWhiteSpace(request.Cupom))
+            if (!string.IsNullOrWhiteSpace(request.Cupom))
                 builder.AplicarCupom(request.Cupom);
 
-           var pedido = builder.Build();
+            var pedido = builder.Build();
 
-           _context.Pedidos.Add(pedido);
-           await _context.SaveChangesAsync();
-           return Ok(pedido.Id);
+            return await FinalizarPedido(pedido);
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    private async Task<IActionResult> FinalizarPedido(Pedido pedido)
+    {
+        var strategies = _seledorDeDescontos.Selecionar(pedido);
+        pedido.AplicarDesconto(strategies);
+        _context.Pedidos.Add(pedido);
+        await _context.SaveChangesAsync();
+        return Ok(pedido.Id);
     }
 }

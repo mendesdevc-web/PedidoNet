@@ -1,6 +1,6 @@
 ﻿using PedidosNet.Models;
 
-namespace PedidosNet.Domain
+namespace PedidosNet.Domain.Criacao
 {
     public class PedidoFactory : IPedidoFactory
     {
@@ -10,6 +10,7 @@ namespace PedidosNet.Domain
             {
                 Id = Guid.NewGuid(),
                 ClienteId = cliente.Id,
+                Cliente = cliente,
                 DataCriacao = DateTime.Now,
                 EnderecoEntrega = cliente.Endereco,
                 Itens = itens.ToList(),
@@ -24,9 +25,9 @@ namespace PedidosNet.Domain
 
         private static string DefinirStatusInicial(Cliente cliente, decimal total)
         {
-           if(cliente.Corporativo && total > 5000) return "AguardandoValidacao";
+           if(cliente.Segmento == SegmentoCliente.Corporativo && total > 5000) return "AguardandoValidacao";
 
-           if (cliente.Vip) return "EmAnalise";
+           if (cliente.Segmento == SegmentoCliente.Vip) return "EmAnalise";
            
            return "Pendente";
         }

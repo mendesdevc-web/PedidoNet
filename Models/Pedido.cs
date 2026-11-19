@@ -1,3 +1,5 @@
+using PedidosNet.Domain.Descontos;
+
 namespace PedidosNet.Models;
 
 public class Pedido
@@ -6,7 +8,7 @@ public class Pedido
 
     public Guid ClienteId { get; set; }
     public Cliente? Cliente { get; set; }
-    public string EnderecoEntrega { get; set; } = string.Empty;
+    public Endereco EnderecoEntrega { get; set; } = null!;
     public string? CupomDesconto { get; set; }
     public string Status { get; set; } = string.Empty;
     public decimal Total { get; set; }
@@ -18,10 +20,13 @@ public class Pedido
     {
         Total = Itens.Sum(i => i.Preco * i.Quantidade);
     }
-
-    public void AplicarCupom(string cupom, decimal percentual)
+    
+    public void AplicarDesconto( IEnumerable<IDescontoStrategy> Strategies)
     {
-        Total -= Total * percentual;
-        CupomDesconto = cupom;
+        foreach (var strategy in Strategies)
+        {
+            var desconto = strategy.CalcularDesconto(this);
+            Total -= desconto;
+        }
     }
 }

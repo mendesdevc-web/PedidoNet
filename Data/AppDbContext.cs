@@ -12,6 +12,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Cliente>()
+            .ComplexProperty(c => c.Endereco);
+
         modelBuilder.Entity<Pedido>()
             .HasOne(p => p.Cliente)
             .WithMany()
@@ -21,6 +24,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMany(p => p.Itens)
             .WithOne(i => i.Pedido)
             .HasForeignKey(i => i.PedidoId);
+
+        modelBuilder.Entity<Pedido>()
+            .ComplexProperty(c => c.EnderecoEntrega);
 
         modelBuilder.Entity<ItemPedido>()
             .HasOne(i => i.Produto)

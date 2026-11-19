@@ -1,6 +1,6 @@
 ﻿using PedidosNet.Models;
 
-namespace PedidosNet.Domain
+namespace PedidosNet.Domain.Criacao
 {
     public class KitPromocionalBuilder
     {
@@ -76,7 +76,7 @@ namespace PedidosNet.Domain
             var pedido = _pedidoFactory.Criar(_cliente, _itens);
 
             if(_cupomDesconto is not null)
-                pedido.AplicarCupom(_cupomDesconto, PercentualDesconto);
+                pedido.CupomDesconto = _cupomDesconto;
 
             return pedido;
 

@@ -1,3 +1,4 @@
+
 using PedidosNet.Models;
 
 namespace PedidosNet.Data;
@@ -19,7 +20,6 @@ public static class DbSeeder
     public static readonly Guid ProdutoHeadsetId = Guid.Parse("aaaaaaaa-0006-0006-0006-000000000006");
     public static readonly Guid ProdutoMicrofonetId = Guid.Parse("aaaaaaaa-0007-0007-0007-000000000007");
 
-
     public static readonly Guid PedidoAnaId = Guid.Parse("99999999-0001-0001-0001-000000000001");
     public static readonly Guid PedidoBrunoId = Guid.Parse("99999999-0002-0002-0002-000000000002");
     public static readonly Guid PedidoCarlaId = Guid.Parse("99999999-0003-0003-0003-000000000003");
@@ -27,41 +27,52 @@ public static class DbSeeder
     public static void Seed(AppDbContext db)
     {
         if (db.Clientes.Any())
-            return; 
+            return;
 
+        // CLIENTES
         var clientes = new List<Cliente>
         {
-            new()
-            {
-                Id = ClienteAnaId, Nome = "Ana Ferreira", Email = "ana.ferreira@pedidosnet.com.br",
-                Endereco = "Rua das Flores, 123",
-                Vip = true, Corporativo = false, Bloqueado = false,
-                DataCadastro = new DateTime(2024, 3, 10)
-            },
-            new()
-            {
-                Id = ClienteBrunoId, Nome = "Bruno Salles", Email = "bruno.salles@pedidosnet.com.br",
-                Endereco = "Av. Paulista, 456",
-                Vip = false, Corporativo = true, Bloqueado = false,
-                DataCadastro = new DateTime(2024, 6, 22)
-            },
-            new()
-            {
-                Id = ClienteCarlaId, Nome = "Carla Nunes", Email = "carla.nunes@pedidosnet.com.br",
-                Endereco = "Rua do Sol, 789",
-                Vip = false, Corporativo = false, Bloqueado = false,
-                DataCadastro = new DateTime(2025, 1, 5)
-            },
-            new()
-            {
-                Id = ClienteDaniloId, Nome = "Danilo Reis", Email = "danilo.reis@pedidosnet.com.br",
-                Endereco = "Av. das Américas, 321",
-                Vip = false, Corporativo = false, Bloqueado = true,
-                DataCadastro = new DateTime(2023, 11, 30)
-            },
+            new(
+                ClienteAnaId,
+                "Ana Ferreira",
+                "ana.ferreira@pedidosnet.com.br",
+                new Endereco("Av. Americana", "458", "Centro", "15098-045", "São Paulo", "SP"),
+                SegmentoCliente.Vip,
+                new DateTime(2024, 06, 22)),
+
+            new(
+                ClienteBrunoId,
+                "Bruno Martins",
+                "bruno.martins@pedidosnet.com.br",
+                new Endereco("Rua das Flores", "120", "Centro", "15000-100", "São José do Rio Preto", "SP"),
+                SegmentoCliente.Normal,
+                new DateTime(2024, 08, 15)),
+
+            new(
+                ClienteCarlaId,
+                "Carla Souza",
+                "carla.souza@pedidosnet.com.br",
+                new Endereco("Av. Brasil", "850", "Jardim América", "15045-200", "São José do Rio Preto", "SP"),
+                SegmentoCliente.Corporativo,
+                new DateTime(2024, 09, 10)),
+
+            new(
+                ClienteDaniloId,
+                "Danilo Ribeiro",
+                "danilo.ribeiro@pedidosnet.com.br",
+                new Endereco("Rua São Paulo", "320", "Vila Nova", "15025-300", "São José do Rio Preto", "SP"),
+                SegmentoCliente.Normal,
+                new DateTime(2025, 01, 20))
         };
+
         db.Clientes.AddRange(clientes);
 
+        // RECUPERAÇÃO DOS CLIENTES
+        var clienteAna = clientes.First(c => c.Id == ClienteAnaId);
+        var clienteBruno = clientes.First(c => c.Id == ClienteBrunoId);
+        var clienteCarla = clientes.First(c => c.Id == ClienteCarlaId);
+
+        // PRODUTOS
         var produtos = new List<Produto>
         {
             new() { Id = ProdutoNotebookId, Nome = "Notebook Pro 15\"", Categoria = "Informática", Preco = 6500.00m, Estoque = 12, Peso = 2.5m },
@@ -71,78 +82,96 @@ public static class DbSeeder
             new() { Id = ProdutoWebcamId, Nome = "Webcam Full HD", Categoria = "Periféricos", Preco = 260.00m, Estoque = 60, Peso = 0.5m },
             new() { Id = ProdutoHeadsetId, Nome = "Headset Gamer", Categoria = "Áudio", Preco = 430.00m, Estoque = 40, Peso = 0.8m },
         };
+
         db.Produtos.AddRange(produtos);
 
+        // PEDIDO ANA
         var pedidoAna = new Pedido
         {
             Id = PedidoAnaId,
-            ClienteId = ClienteAnaId,
+            ClienteId = clienteAna.Id,
             Status = "Pago",
-            EnderecoEntrega = "Rua das Flores, 123",
+            EnderecoEntrega = clienteAna.Endereco,
             DataCriacao = new DateTime(2025, 5, 12),
             Itens = new List<ItemPedido>
             {
                 new()
                 {
                     Id = Guid.Parse("bbbbbbbb-0001-0001-0001-000000000001"),
-                    ProdutoId = ProdutoNotebookId, NomeProduto = "Notebook Pro 15\"",
-                    Preco = 6500.00m, Quantidade = 1
+                    ProdutoId = ProdutoNotebookId,
+                    NomeProduto = "Notebook Pro 15\"",
+                    Preco = 6500.00m,
+                    Quantidade = 1
                 },
                 new()
                 {
                     Id = Guid.Parse("bbbbbbbb-0001-0001-0001-000000000002"),
-                    ProdutoId = ProdutoMouseId, NomeProduto = "Mouse Sem Fio",
-                    Preco = 90.00m, Quantidade = 1
+                    ProdutoId = ProdutoMouseId,
+                    NomeProduto = "Mouse Sem Fio",
+                    Preco = 90.00m,
+                    Quantidade = 1
                 },
             }
         };
+
         pedidoAna.Total = pedidoAna.Itens.Sum(i => i.Preco * i.Quantidade);
         pedidoAna.Total -= pedidoAna.Total * 0.10m; // Ana é VIP: desconto já refletido no histórico
 
+        // PEDIDO BRUNO
         var pedidoBruno = new Pedido
         {
             Id = PedidoBrunoId,
-            ClienteId = ClienteBrunoId,
+            ClienteId = clienteBruno.Id,
             Status = "Pendente",
-            EnderecoEntrega = "Av. Paulista, 456",
+            EnderecoEntrega = clienteBruno.Endereco,
             DataCriacao = new DateTime(2025, 6, 2),
             Itens = new List<ItemPedido>
             {
                 new()
                 {
                     Id = Guid.Parse("bbbbbbbb-0002-0002-0002-000000000001"),
-                    ProdutoId = ProdutoMonitorId, NomeProduto = "Monitor 27\" 144Hz",
-                    Preco = 1900.00m, Quantidade = 2
+                    ProdutoId = ProdutoMonitorId,
+                    NomeProduto = "Monitor 27\" 144Hz",
+                    Preco = 1900.00m,
+                    Quantidade = 2
                 },
                 new()
                 {
                     Id = Guid.Parse("bbbbbbbb-0002-0002-0002-000000000002"),
-                    ProdutoId = ProdutoTecladoId, NomeProduto = "Teclado Mecânico",
-                    Preco = 350.00m, Quantidade = 1
+                    ProdutoId = ProdutoTecladoId,
+                    NomeProduto = "Teclado Mecânico",
+                    Preco = 350.00m,
+                    Quantidade = 1
                 },
             }
         };
+
         pedidoBruno.Total = pedidoBruno.Itens.Sum(i => i.Preco * i.Quantidade);
 
+        // PEDIDO CARLA
         var pedidoCarla = new Pedido
         {
             Id = PedidoCarlaId,
-            ClienteId = ClienteCarlaId,
+            ClienteId = clienteCarla.Id,
             Status = "Cancelado",
-            EnderecoEntrega = "Rua do Sol, 789",
+            EnderecoEntrega = clienteCarla.Endereco,
             DataCriacao = new DateTime(2025, 4, 18),
             Itens = new List<ItemPedido>
             {
                 new()
                 {
                     Id = Guid.Parse("bbbbbbbb-0003-0003-0003-000000000001"),
-                    ProdutoId = ProdutoWebcamId, NomeProduto = "Webcam Full HD",
-                    Preco = 260.00m, Quantidade = 1
+                    ProdutoId = ProdutoWebcamId,
+                    NomeProduto = "Webcam Full HD",
+                    Preco = 260.00m,
+                    Quantidade = 1
                 },
             }
         };
+
         pedidoCarla.Total = pedidoCarla.Itens.Sum(i => i.Preco * i.Quantidade);
 
+        // SALVANDO PEDIDOS
         db.Pedidos.AddRange(pedidoAna, pedidoBruno, pedidoCarla);
 
         db.SaveChanges();

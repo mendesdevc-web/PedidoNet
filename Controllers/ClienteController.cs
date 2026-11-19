@@ -53,8 +53,6 @@ public class ClienteController : ControllerBase
 
         existente.Nome = cliente.Nome;
         existente.Email = cliente.Email;
-        existente.Vip = cliente.Vip;
-        existente.Corporativo = cliente.Corporativo;
         existente.Bloqueado = cliente.Bloqueado;
 
         await _context.SaveChangesAsync();

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PedidosNet.Data;
-using PedidosNet.Domain;
+using PedidosNet.Domain.Criacao;
+using PedidosNet.Domain.Descontos;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,12 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IPedidoFactory, PedidoFactory>();
 
+//definir a ordem de desconto que sera aplicado
+builder.Services.AddScoped<IDescontoStrategy, DescontoVip>();
+builder.Services.AddScoped<IDescontoStrategy, DescontoValorPedido>();
+builder.Services.AddScoped<IDescontoStrategy, DescontoCupom>();
+builder.Services.AddScoped<IDescontoStrategy, DescontoSemanaDosPais>();
+builder.Services.AddScoped<SeledorDeDescontos>();
 
 var app = builder.Build();
 
