@@ -7,6 +7,7 @@ public class Cliente
     public string Email { get; set; } = string.Empty;
     public Endereco Endereco { get; set; } = null!;
     public SegmentoCliente Segmento { get; private set; }
+    public decimal LimiteCredito { get; private set; }
     public bool Bloqueado { get; set; }
     public DateTime DataCadastro { get; set; }
 
@@ -16,13 +17,14 @@ public class Cliente
     }
 
     public Cliente(Guid id, string nome ,string email ,Endereco endereco, 
-        SegmentoCliente segmento, DateTime dataCadastro, bool bloqueado = false)
+        SegmentoCliente segmento, decimal limiteCredito, DateTime dataCadastro, bool bloqueado = false)
     {
         Id = id;
         Nome = nome;
         Email = email;
         Endereco = endereco;
         Segmento = segmento;
+        LimiteCredito = limiteCredito;
         DataCadastro = dataCadastro;
         Bloqueado = bloqueado;
     }

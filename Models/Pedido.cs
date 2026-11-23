@@ -1,4 +1,6 @@
+using PedidosNet.Domain;
 using PedidosNet.Domain.Descontos;
+using PedidosNet.Domain.Estado;
 
 namespace PedidosNet.Models;
 
@@ -10,7 +12,9 @@ public class Pedido
     public Cliente? Cliente { get; set; }
     public Endereco EnderecoEntrega { get; set; } = null!;
     public string? CupomDesconto { get; set; }
-    public string Status { get; set; } = string.Empty;
+
+    public PedidoStatus Status { get; private set; }
+    private IPedidoState? _estado;
     public decimal Total { get; set; }
     public DateTime DataCriacao { get; set; }
 
@@ -28,5 +32,35 @@ public class Pedido
             var desconto = strategy.CalcularDesconto(this);
             Total -= desconto;
         }
+    }
+    public Result Aprovar() => ObterEstado().Aprovar(this);
+    public Result Processar() => ObterEstado().Processar(this);
+    public Result Enviar() => ObterEstado().Enviar(this);
+    public Result Entregar() => ObterEstado().Entregar(this);
+
+    internal void AlterarEstado(IPedidoState novoEstado)
+    {
+        _estado = novoEstado;
+        Status = novoEstado.Status;
+    }
+
+    private IPedidoState ObterEstado()
+    {
+        return _estado ??= CriarEstado(Status);
+    }
+
+    private static IPedidoState? CriarEstado(PedidoStatus status)
+    {
+        return status switch 
+        {
+            PedidoStatus.AguardandoValidacao => new PedidoAguardandoValidacaoState (),
+            PedidoStatus.EmAnalise => new PedidoEmAnaliseState(),
+            PedidoStatus.Pendente => new PedidoPendenteState(),
+            PedidoStatus.Aprovado => new PedidoAprovadoState(),
+            PedidoStatus.Processando => new PedidoProcessadoState(),
+            PedidoStatus.Enviado => new PedidoEnviadoState(),
+            PedidoStatus.Entregue => new PedidoEntregueState(),
+            _=> throw new InvalidOperationException ($"Estado de pedido invalido: {status}") 
+        };
     }
 }

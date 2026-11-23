@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PedidosNet.Data;
 using PedidosNet.Domain.Criacao;
 using PedidosNet.Domain.Descontos;
+using PedidosNet.Domain.Validacoes;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,7 @@ builder.Services.AddControllers()
         // Corta o ciclo Pedido -> Itens -> ItemPedido -> Pedido -> ...
         // Fix definitivo (DTOs de resposta) entra organicamente mais adiante no curso.
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -31,6 +33,13 @@ builder.Services.AddScoped<IDescontoStrategy, DescontoValorPedido>();
 builder.Services.AddScoped<IDescontoStrategy, DescontoCupom>();
 builder.Services.AddScoped<IDescontoStrategy, DescontoSemanaDosPais>();
 builder.Services.AddScoped<SeledorDeDescontos>();
+
+builder.Services.AddScoped<ClienteBloqueadoHandler>();
+builder.Services.AddScoped<EstoqueHandler>();
+builder.Services.AddScoped<LimiteCreditoHandler>();
+
+builder.Services.AddScoped<PedidoValidationChain>();
+
 
 var app = builder.Build();
 

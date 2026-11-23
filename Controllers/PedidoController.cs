@@ -66,6 +66,9 @@ public class PedidoController : ControllerBase
             if (produto is null)
                 return BadRequest($"Produto {itemRequest.ProdutoId} não encontrado.");
 
+            if (produto.Estoque < itemRequest.Quantidade)
+                return BadRequest($"Estoque insuficiente para {produto.Nome}");
+
             itens.Add(new ItemPedido
             {
                 Id = Guid.NewGuid(),
@@ -74,6 +77,13 @@ public class PedidoController : ControllerBase
                 Preco = produto.Preco,
                 Quantidade = itemRequest.Quantidade
             });
+        }
+
+        var totalPedido = itens.Sum(i => i.Preco * i.Quantidade);
+
+        if (totalPedido > cliente.LimiteCredito)
+        {
+            return BadRequest("Limite de crédito insuficiente.");
         }
 
         var pedido = _pedidoFactory.Criar(cliente, itens);
@@ -94,6 +104,8 @@ public class PedidoController : ControllerBase
 
         var builder = new KitPromocionalBuilder(_pedidoFactory).ParaCliente(cliente);
 
+        decimal totalKit = 0;
+
         try
         {
             foreach (var itemRequest in request.Itens)
@@ -103,11 +115,19 @@ public class PedidoController : ControllerBase
                 if (produto is null)
                     return BadRequest($"Produto {itemRequest.ProdutoId} não encontrado.");
 
+                if (produto.Estoque < itemRequest.Quantidade)
+                    return BadRequest($"Estoque insuficiente para {produto.Nome}");
+
+                totalKit += produto.Preco * itemRequest.Quantidade;
+
                 builder.AddProduto(produto, itemRequest.Quantidade);
             }
 
             if (!string.IsNullOrWhiteSpace(request.Cupom))
                 builder.AplicarCupom(request.Cupom);
+
+            if (totalKit > cliente.LimiteCredito)
+                return BadRequest("Limite de crédito insuficiente.");
 
             var pedido = builder.Build();
 
@@ -126,5 +146,101 @@ public class PedidoController : ControllerBase
         _context.Pedidos.Add(pedido);
         await _context.SaveChangesAsync();
         return Ok(pedido.Id);
+    }
+
+    [HttpPost("{id:guid}/aprovar")]
+    public async Task<IActionResult> Aprovar(Guid id)
+    {
+        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+
+        if (pedido is null)
+            return NotFound();
+
+        var result = pedido.Aprovar();
+        if (!result.IsSuccess)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Transição de estado invalida",
+                detail: result.ErrorMensage,
+                extensions: new Dictionary<string, object?> 
+                {
+                    ["errorCode"] = result.ErrorCode
+                });
+        }
+        await _context.SaveChangesAsync();
+        return Ok (pedido);
+    }
+
+    [HttpPost("{id:guid}/processar")]
+    public async Task<IActionResult> Processar(Guid id)
+    {
+        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+
+        if (pedido is null)
+            return NotFound();
+
+        var result = pedido.Processar();
+        if (!result.IsSuccess)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Transição de estado invalida",
+                detail: result.ErrorMensage,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["errorCode"] = result.ErrorCode
+                });
+        }
+        await _context.SaveChangesAsync();
+        return Ok(pedido);
+    }
+
+    [HttpPost("{id:guid}/enviar")]
+    public async Task<IActionResult> Enviar(Guid id)
+    {
+        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+
+        if (pedido is null)
+            return NotFound();
+
+        var result = pedido.Enviar();
+        if (!result.IsSuccess)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Transição de estado invalida",
+                detail: result.ErrorMensage,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["errorCode"] = result.ErrorCode
+                });
+        }
+        await _context.SaveChangesAsync();
+        return Ok(pedido);
+    }
+
+    [HttpPost("{id:guid}/entregar")]
+    public async Task<IActionResult> Entregar(Guid id)
+    {
+        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+
+        if (pedido is null)
+            return NotFound();
+
+        var result = pedido.Entregar();
+        if (!result.IsSuccess)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "Transição de estado invalida",
+                detail: result.ErrorMensage,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["errorCode"] = result.ErrorCode
+                });
+        }
+        await _context.SaveChangesAsync();
+        return Ok(pedido);
     }
 }

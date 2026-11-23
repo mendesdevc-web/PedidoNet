@@ -1,4 +1,5 @@
-﻿using PedidosNet.Models;
+﻿using PedidosNet.Domain.Estado;
+using PedidosNet.Models;
 
 namespace PedidosNet.Domain.Criacao
 {
@@ -18,18 +19,25 @@ namespace PedidosNet.Domain.Criacao
 
             pedido.CalcularTotal();
 
-            pedido.Status = DefinirStatusInicial(cliente, pedido.Total);
-
+            var estadoInical = DefinirStatusInicial(cliente, pedido.Total);
+            pedido.AlterarEstado(estadoInical);
+            
             return pedido;
         }
 
-        private static string DefinirStatusInicial(Cliente cliente, decimal total)
+        private static  IPedidoState DefinirStatusInicial(Cliente cliente, decimal total)
         {
-           if(cliente.Segmento == SegmentoCliente.Corporativo && total > 5000) return "AguardandoValidacao";
+           if(cliente.Segmento == SegmentoCliente.Corporativo && total > 5000)
+           {
+                return new PedidoAguardandoValidacaoState();
+           }
 
-           if (cliente.Segmento == SegmentoCliente.Vip) return "EmAnalise";
+           if (cliente.Segmento == SegmentoCliente.Vip)
+           {
+                return new PedidoEmAnaliseState();
+           }
            
-           return "Pendente";
+           return new PedidoPendenteState();
         }
     }
 }

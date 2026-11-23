@@ -1,4 +1,5 @@
 
+using PedidosNet.Domain.Estado;
 using PedidosNet.Models;
 
 namespace PedidosNet.Data;
@@ -39,7 +40,7 @@ public static class DbSeeder
                 "Ana Ferreira",
                 "ana.ferreira@pedidosnet.com.br",
                 new Endereco("15098-045", "Av. Americana", "458", "Centro", "São Paulo", "SP"),
-                SegmentoCliente.Vip,
+                SegmentoCliente.Vip, 5000m,
                 new DateTime(2024, 06, 22)),
 
             new(
@@ -47,7 +48,7 @@ public static class DbSeeder
                 "Bruno Martins",
                 "bruno.martins@pedidosnet.com.br",
                 new Endereco("15000-100", "Rua das Flores", "120", "Centro", "São José do Rio Preto", "SP"),
-                SegmentoCliente.Normal,
+                SegmentoCliente.Normal, 12000,
                 new DateTime(2024, 08, 15)),
 
             new(
@@ -55,7 +56,7 @@ public static class DbSeeder
                 "Carla Souza",
                 "carla.souza@pedidosnet.com.br",
                 new Endereco("15045-200", "Av. Brasil", "850", "Jardim América", "São José do Rio Preto", "SP"),
-                SegmentoCliente.Corporativo,
+                SegmentoCliente.Corporativo, 3000m,
                 new DateTime(2024, 09, 10)),
 
             new(
@@ -63,7 +64,7 @@ public static class DbSeeder
                 "Danilo Ribeiro",
                 "danilo.ribeiro@pedidosnet.com.br",
                 new Endereco("15025-300", "Rua São Paulo", "320", "Vila Nova", "São José do Rio Preto", "SP"),
-                SegmentoCliente.Normal,
+                SegmentoCliente.Normal, 2000m,
                 new DateTime(2025, 01, 20))
         };
 
@@ -93,7 +94,6 @@ public static class DbSeeder
         {
             Id = PedidoAnaId,
             ClienteId = clienteAna.Id,
-            Status = "Pago",
             EnderecoEntrega = clienteAna.Endereco,
             DataCriacao = new DateTime(2025, 5, 12),
             Itens = new List<ItemPedido>
@@ -117,15 +117,15 @@ public static class DbSeeder
             }
         };
 
-        pedidoAna.Total = pedidoAna.Itens.Sum(i => i.Preco * i.Quantidade);
-        pedidoAna.Total -= pedidoAna.Total * 0.10m; // Ana é VIP: desconto já refletido no histórico
+        pedidoAna.CalcularTotal();
+
+        pedidoAna.AlterarEstado(new PedidoPendenteState());
 
         // PEDIDO BRUNO
         var pedidoBruno = new Pedido
         {
             Id = PedidoBrunoId,
             ClienteId = clienteBruno.Id,
-            Status = "Pendente",
             EnderecoEntrega = clienteBruno.Endereco,
             DataCriacao = new DateTime(2025, 6, 2),
             Itens = new List<ItemPedido>
@@ -149,14 +149,15 @@ public static class DbSeeder
             }
         };
 
-        pedidoBruno.Total = pedidoBruno.Itens.Sum(i => i.Preco * i.Quantidade);
+        pedidoBruno.CalcularTotal();
+
+        pedidoBruno.AlterarEstado(new PedidoPendenteState());
 
         // PEDIDO CARLA
         var pedidoCarla = new Pedido
         {
             Id = PedidoCarlaId,
             ClienteId = clienteCarla.Id,
-            Status = "Cancelado",
             EnderecoEntrega = clienteCarla.Endereco,
             DataCriacao = new DateTime(2025, 4, 18),
             Itens = new List<ItemPedido>
@@ -172,7 +173,9 @@ public static class DbSeeder
             }
         };
 
-        pedidoCarla.Total = pedidoCarla.Itens.Sum(i => i.Preco * i.Quantidade);
+        pedidoCarla.CalcularTotal();
+
+        pedidoCarla.AlterarEstado(new PedidoPendenteState());
 
         // SALVANDO PEDIDOS
         db.Pedidos.AddRange(pedidoAna, pedidoBruno, pedidoCarla);
