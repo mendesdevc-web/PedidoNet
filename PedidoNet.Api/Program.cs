@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using PedidosNet.Application.Handlers;
 using PedidosNet.Domain.Criacao;
 using PedidosNet.Domain.Descontos;
+using PedidosNet.Domain.Repositories;
 using PedidosNet.Domain.Validacoes;
+using PedidosNet.Infra;
 using PedidosNet.Infra.Data;
 using System.Text.Json.Serialization;
 
@@ -39,6 +42,9 @@ builder.Services.AddScoped<EstoqueHandler>();
 builder.Services.AddScoped<LimiteCreditoHandler>();
 
 builder.Services.AddScoped<PedidoValidationChain>();
+
+builder.Services.AddScoped<IPedidoRepositoriy, PedidoRepository>();
+builder.Services.AddScoped<AprovarPedidoHandler>();
 
 
 var app = builder.Build();

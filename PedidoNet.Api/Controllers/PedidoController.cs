@@ -1,10 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PedidosNet.Infra.Data;
-using PedidosNet.Domain.Entities;
+using PedidosNet.Application.Commands;
+using PedidosNet.Application.Handlers;
+using PedidosNet.Domain;
 using PedidosNet.Domain.Criacao;
 using PedidosNet.Domain.Descontos;
+using PedidosNet.Domain.Entities;
+using PedidosNet.Domain.Validacoes;
 using PedidosNet.DTOs;
+using PedidosNet.Infra.Data;
 
 
 namespace PedidosNet.Controllers;
@@ -16,12 +20,17 @@ public class PedidoController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IPedidoFactory _pedidoFactory;
     private readonly SeledorDeDescontos _seledorDeDescontos;
+    private readonly PedidoValidationChain _validationChain;
+    private readonly AprovarPedidoHandler _aprovarHandler;
 
-    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos)
+    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos
+                    ,PedidoValidationChain validationChain, AprovarPedidoHandler aprovarHandler)
     {
         _context = context;
         _pedidoFactory = pedidoFactory;
         _seledorDeDescontos = seledorDeDescontos;
+        _validationChain = validationChain;
+        _aprovarHandler = aprovarHandler;
     }
 
     [HttpGet]
@@ -151,25 +160,21 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/aprovar")]
     public async Task<IActionResult> Aprovar(Guid id)
     {
-        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+        var resultado = await _aprovarHandler.HandlerAsnyc(
+                        new AprovarPedidoCommand(id));
 
-        if (pedido is null)
-            return NotFound();
-
-        var result = pedido.Aprovar();
-        if (!result.IsSuccess)
+        if (!resultado.IsSuccess)
         {
             return Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Transição de estado invalida",
-                detail: result.ErrorMensage,
-                extensions: new Dictionary<string, object?> 
+                detail: resultado.ErrorMensage,
+                extensions: new Dictionary<string, object?>
                 {
-                    ["errorCode"] = result.ErrorCode
+                    ["errorCode"] = resultado.ErrorCode
                 });
         }
-        await _context.SaveChangesAsync();
-        return Ok (pedido);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/processar")]
