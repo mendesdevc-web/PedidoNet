@@ -1,3 +1,6 @@
-<Solution>
-  <Project Path="PedidosNet.csproj" />
+﻿<Solution>
+  <Project Path="PedidoNet.Api/PedidoNet.Api.csproj" />
+  <Project Path="PedidosNet.Application/PedidosNet.Application.csproj" />
+  <Project Path="PedidosNet.Domain/PedidosNet.Domain.csproj" />
+  <Project Path="PedidosNet.Infra/PedidosNet.Infra.csproj" />
 </Solution>
