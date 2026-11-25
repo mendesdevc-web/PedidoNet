@@ -22,15 +22,22 @@ public class PedidoController : ControllerBase
     private readonly SeledorDeDescontos _seledorDeDescontos;
     private readonly PedidoValidationChain _validationChain;
     private readonly AprovarPedidoHandler _aprovarHandler;
+    private readonly ProcessarPedidoHandler _processarHandler;
+    private readonly EnviarPedidoHandler _enviarHandler;
+    private readonly EntregarPedidoHandler _entregarHandler;
 
-    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos
-                    ,PedidoValidationChain validationChain, AprovarPedidoHandler aprovarHandler)
+   public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos
+                    ,PedidoValidationChain validationChain, AprovarPedidoHandler aprovarHandler, ProcessarPedidoHandler processarHandler
+                    , EnviarPedidoHandler enviarHandler, EntregarPedidoHandler entregarHandler)
     {
         _context = context;
         _pedidoFactory = pedidoFactory;
         _seledorDeDescontos = seledorDeDescontos;
         _validationChain = validationChain;
         _aprovarHandler = aprovarHandler;
+        _processarHandler = processarHandler;
+        _enviarHandler = enviarHandler;
+        _entregarHandler = entregarHandler;
     }
 
     [HttpGet]
@@ -180,72 +187,60 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/processar")]
     public async Task<IActionResult> Processar(Guid id)
     {
-        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+        var resultado = await _processarHandler.HandlerAsnyc(
+                        new ProcessarPedidoCommand(id));
 
-        if (pedido is null)
-            return NotFound();
-
-        var result = pedido.Processar();
-        if (!result.IsSuccess)
+        if (!resultado.IsSuccess)
         {
             return Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Transição de estado invalida",
-                detail: result.ErrorMensage,
+                detail: resultado.ErrorMensage,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["errorCode"] = result.ErrorCode
+                    ["errorCode"] = resultado.ErrorCode
                 });
         }
-        await _context.SaveChangesAsync();
-        return Ok(pedido);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/enviar")]
     public async Task<IActionResult> Enviar(Guid id)
     {
-        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+        var resultado = await _enviarHandler.HandlerAsnyc(
+                        new EnviarPedidoCommand(id));
 
-        if (pedido is null)
-            return NotFound();
-
-        var result = pedido.Enviar();
-        if (!result.IsSuccess)
+        if (!resultado.IsSuccess)
         {
             return Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Transição de estado invalida",
-                detail: result.ErrorMensage,
+                detail: resultado.ErrorMensage,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["errorCode"] = result.ErrorCode
+                    ["errorCode"] = resultado.ErrorCode
                 });
         }
-        await _context.SaveChangesAsync();
-        return Ok(pedido);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/entregar")]
     public async Task<IActionResult> Entregar(Guid id)
     {
-        var pedido = await _context.Pedidos.FirstOrDefaultAsync(p => p.Id == id);
+        var resultado = await _entregarHandler.HandlerAsnyc(
+                        new EntregarPedidoCommand(id));
 
-        if (pedido is null)
-            return NotFound();
-
-        var result = pedido.Entregar();
-        if (!result.IsSuccess)
+        if (!resultado.IsSuccess)
         {
             return Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Transição de estado invalida",
-                detail: result.ErrorMensage,
+                detail: resultado.ErrorMensage,
                 extensions: new Dictionary<string, object?>
                 {
-                    ["errorCode"] = result.ErrorCode
+                    ["errorCode"] = resultado.ErrorCode
                 });
         }
-        await _context.SaveChangesAsync();
-        return Ok(pedido);
+        return NoContent();
     }
 }

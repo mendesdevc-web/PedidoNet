@@ -1,10 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using PedidosNet.Application.Commands;
+using PedidosNet.Domain;
+using PedidosNet.Domain.Repositories;
+
 
 namespace PedidosNet.Application.Handlers
 {
-    internal class EnviarPedidoHandler
+    public sealed class EnviarPedidoHandler(IPedidoRepositoriy repositoriy)
     {
+        public async Task<Result> HandlerAsnyc(EnviarPedidoCommand command)
+        {
+            var pedido = await repositoriy.ObterPorIdAsnyc(command.PedidoId);
+
+            if (pedido is null)
+                return Result.Failure("pedido_nao_encontratdo", "Pedido não encontrado");
+
+            var resultado = pedido.Aprovar();
+
+            if (!resultado.IsSuccess)
+                return resultado;
+
+            await repositoriy.AtualizarAsnyc(pedido);
+
+            return Result.Success();
+        }
     }
 }

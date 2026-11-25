@@ -44,8 +44,11 @@ builder.Services.AddScoped<LimiteCreditoHandler>();
 builder.Services.AddScoped<PedidoValidationChain>();
 
 builder.Services.AddScoped<IPedidoRepositoriy, PedidoRepository>();
-builder.Services.AddScoped<AprovarPedidoHandler>();
 
+builder.Services.AddScoped<AprovarPedidoHandler>();
+builder.Services.AddScoped<ProcessarPedidoHandler>();
+builder.Services.AddScoped<EnviarPedidoHandler>();
+builder.Services.AddScoped<EntregarPedidoHandler>();
 
 var app = builder.Build();
 

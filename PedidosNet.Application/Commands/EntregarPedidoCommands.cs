@@ -4,7 +4,5 @@ using System.Text;
 
 namespace PedidosNet.Application.Commands
 {
-    internal class EntregarPedidoCommands
-    {
-    }
+    public sealed record EntregarPedidoCommand(Guid PedidoId);
 }
