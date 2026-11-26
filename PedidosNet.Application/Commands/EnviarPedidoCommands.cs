@@ -4,5 +4,5 @@ using System.Text;
 
 namespace PedidosNet.Application.Commands
 {
-    public sealed record EnviarPedidoCommand(Guid PedidoId);
+    public sealed record EnviarPedidoCommand(Guid PedidoId): ICommand;
 }

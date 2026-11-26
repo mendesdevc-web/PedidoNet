@@ -7,9 +7,9 @@ using System.Text;
 
 namespace PedidosNet.Application.Handlers
 {
-    public sealed class EntregarPedidoHandler(IPedidoRepositoriy repositoriy)
+    public sealed class EntregarPedidoHandler(IPedidoRepositoriy repositoriy) : ICommandHandler<EntregarPedidoCommand>
     {
-        public async Task<Result> HandlerAsnyc(EntregarPedidoCommand command)
+        public async Task<Result> HandleAsnync(EntregarPedidoCommand command)
         {
             var pedido = await repositoriy.ObterPorIdAsnyc(command.PedidoId);
 

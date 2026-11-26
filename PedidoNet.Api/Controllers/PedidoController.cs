@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PedidosNet.Application.Commands;
+using PedidosNet.Application.Dispatchers;
 using PedidosNet.Application.Handlers;
 using PedidosNet.Domain;
 using PedidosNet.Domain.Criacao;
@@ -21,23 +22,17 @@ public class PedidoController : ControllerBase
     private readonly IPedidoFactory _pedidoFactory;
     private readonly SeledorDeDescontos _seledorDeDescontos;
     private readonly PedidoValidationChain _validationChain;
-    private readonly AprovarPedidoHandler _aprovarHandler;
-    private readonly ProcessarPedidoHandler _processarHandler;
-    private readonly EnviarPedidoHandler _enviarHandler;
-    private readonly EntregarPedidoHandler _entregarHandler;
+    private readonly IDispatcher _dispacher;
+    
 
    public PedidoController(AppDbContext context, IPedidoFactory pedidoFactory, SeledorDeDescontos seledorDeDescontos
-                    ,PedidoValidationChain validationChain, AprovarPedidoHandler aprovarHandler, ProcessarPedidoHandler processarHandler
-                    , EnviarPedidoHandler enviarHandler, EntregarPedidoHandler entregarHandler)
+                    ,PedidoValidationChain validationChain, IDispatcher dispatcher )
     {
         _context = context;
         _pedidoFactory = pedidoFactory;
         _seledorDeDescontos = seledorDeDescontos;
         _validationChain = validationChain;
-        _aprovarHandler = aprovarHandler;
-        _processarHandler = processarHandler;
-        _enviarHandler = enviarHandler;
-        _entregarHandler = entregarHandler;
+        _dispacher = dispatcher;
     }
 
     [HttpGet]
@@ -167,8 +162,7 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/aprovar")]
     public async Task<IActionResult> Aprovar(Guid id)
     {
-        var resultado = await _aprovarHandler.HandlerAsnyc(
-                        new AprovarPedidoCommand(id));
+        var resultado = await _dispacher.SendAsync(new AprovarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
         {
@@ -187,8 +181,7 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/processar")]
     public async Task<IActionResult> Processar(Guid id)
     {
-        var resultado = await _processarHandler.HandlerAsnyc(
-                        new ProcessarPedidoCommand(id));
+        var resultado = await _dispacher.SendAsync(new ProcessarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
         {
@@ -207,8 +200,7 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/enviar")]
     public async Task<IActionResult> Enviar(Guid id)
     {
-        var resultado = await _enviarHandler.HandlerAsnyc(
-                        new EnviarPedidoCommand(id));
+        var resultado = await _dispacher.SendAsync(new EnviarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
         {
@@ -227,8 +219,7 @@ public class PedidoController : ControllerBase
     [HttpPost("{id:guid}/entregar")]
     public async Task<IActionResult> Entregar(Guid id)
     {
-        var resultado = await _entregarHandler.HandlerAsnyc(
-                        new EntregarPedidoCommand(id));
+        var resultado = await _dispacher.SendAsync(new EntregarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
         {

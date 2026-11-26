@@ -4,9 +4,9 @@ using PedidosNet.Domain.Repositories;
 
 namespace PedidosNet.Application.Handlers
 {
-    public sealed class ProcessarPedidoHandler(IPedidoRepositoriy repositoriy)
+    public sealed class ProcessarPedidoHandler(IPedidoRepositoriy repositoriy) : ICommandHandler<ProcessarPedidoCommand>
     {
-        public async Task<Result> HandlerAsnyc(ProcessarPedidoCommand command)
+        public async Task<Result> HandleAsnync(ProcessarPedidoCommand command)
         {
             var pedido = await repositoriy.ObterPorIdAsnyc(command.PedidoId);
 

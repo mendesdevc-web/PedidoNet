@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using PedidosNet.Application.Commands;
+using PedidosNet.Application.Dispatchers;
 using PedidosNet.Application.Handlers;
 using PedidosNet.Domain.Criacao;
 using PedidosNet.Domain.Descontos;
@@ -45,10 +47,13 @@ builder.Services.AddScoped<PedidoValidationChain>();
 
 builder.Services.AddScoped<IPedidoRepositoriy, PedidoRepository>();
 
-builder.Services.AddScoped<AprovarPedidoHandler>();
-builder.Services.AddScoped<ProcessarPedidoHandler>();
-builder.Services.AddScoped<EnviarPedidoHandler>();
-builder.Services.AddScoped<EntregarPedidoHandler>();
+
+builder.Services.AddScoped<ICommandHandler<AprovarPedidoCommand>, AprovarPedidoHandler>();
+builder.Services.AddScoped<ICommandHandler<ProcessarPedidoCommand>, ProcessarPedidoHandler>();
+builder.Services.AddScoped<ICommandHandler<EnviarPedidoCommand>, EnviarPedidoHandler>();
+builder.Services.AddScoped<ICommandHandler<EntregarPedidoCommand>, EntregarPedidoHandler>();
+
+builder.Services.AddScoped<IDispatcher, Dispatcher>();
 
 var app = builder.Build();
 
