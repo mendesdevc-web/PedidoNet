@@ -7,18 +7,21 @@ using System.Text;
 
 namespace PedidosNet.Infra
 {
-    public sealed class PedidoRepository (AppDbContext context) : IPedidoRepositoriy
+    public sealed class PedidoRepository (AppDbContext context) : IPedidoRepository
     {
-         
         public async Task AtualizarAsnyc(Pedido pedido)
         {
             context.Pedidos.Update(pedido);
             await context.SaveChangesAsync();
         }
-
         public async Task<Pedido?> ObterPorIdAsnyc(Guid id)
         {
             return await context.Pedidos.FindAsync(id);
+        }
+        public async Task AdicionarAsync(Pedido pedido)
+        {
+            context.Pedidos.Add(pedido);
+            await context.SaveChangesAsync();
         }
     }
 }

@@ -5,7 +5,7 @@ using PedidosNet.Domain.Repositories;
 
 namespace PedidosNet.Application.Handlers
 {
-    public sealed class EnviarPedidoHandler(IPedidoRepositoriy repositoriy) : ICommandHandler<EnviarPedidoCommand>
+    public sealed class EnviarPedidoHandler(IPedidoRepository repositoriy) : ICommandHandler<EnviarPedidoCommand>
     {
         public async Task<Result> HandleAsnync(EnviarPedidoCommand command)
         {

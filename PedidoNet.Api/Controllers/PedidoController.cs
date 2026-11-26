@@ -1,8 +1,8 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PedidosNet.Application.Commands;
 using PedidosNet.Application.Dispatchers;
-using PedidosNet.Application.Handlers;
 using PedidosNet.Domain;
 using PedidosNet.Domain.Criacao;
 using PedidosNet.Domain.Descontos;
@@ -61,45 +61,22 @@ public class PedidoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Criar(CreatePedidoRequest request)
     {
-        var cliente = await _context.Clientes.FindAsync(request.ClienteId);
-        if (cliente is null)
-            return BadRequest("Cliente não encontrado.");
+        var resultado = await _dispacher.SendAsync(
+            new CriarPedidoCommand(
+                request.ClienteId,
+                [
+                    .. request.Itens.Select(i =>
+                        new CriarPedidoCommand.Item(
+                            i.ProdutoId,
+                            i.Quantidade ))])
+        );
 
-        //Regra 1: Cliente bloqueado nem chega a criar pedido
-        if(cliente.Bloqueado)
-            return BadRequest("Cliente bloqueado não pode criar pedidos.");
+        if (!resultado.IsSuccess)
+            return FalhaNegocio(resultado, "Validação do pedido falhou");
 
-        var itens = new List<ItemPedido>();
+        return Ok(resultado.Value);
 
-        foreach (var itemRequest in request.Itens)
-        {
-            var produto = await _context.Produtos.FindAsync(itemRequest.ProdutoId);
-            if (produto is null)
-                return BadRequest($"Produto {itemRequest.ProdutoId} não encontrado.");
 
-            if (produto.Estoque < itemRequest.Quantidade)
-                return BadRequest($"Estoque insuficiente para {produto.Nome}");
-
-            itens.Add(new ItemPedido
-            {
-                Id = Guid.NewGuid(),
-                ProdutoId = produto.Id,
-                NomeProduto = produto.Nome,
-                Preco = produto.Preco,
-                Quantidade = itemRequest.Quantidade
-            });
-        }
-
-        var totalPedido = itens.Sum(i => i.Preco * i.Quantidade);
-
-        if (totalPedido > cliente.LimiteCredito)
-        {
-            return BadRequest("Limite de crédito insuficiente.");
-        }
-
-        var pedido = _pedidoFactory.Criar(cliente, itens);
-
-        return Ok(await FinalizarPedido(pedido));
     }
 
     [HttpPost("kits")]
@@ -153,7 +130,7 @@ public class PedidoController : ControllerBase
     private async Task<IActionResult> FinalizarPedido(Pedido pedido)
     {
         var strategies = _seledorDeDescontos.Selecionar(pedido);
-        pedido.AplicarDesconto(strategies);
+        pedido.AplicarDescontos(strategies);
         _context.Pedidos.Add(pedido);
         await _context.SaveChangesAsync();
         return Ok(pedido.Id);
@@ -165,16 +142,8 @@ public class PedidoController : ControllerBase
         var resultado = await _dispacher.SendAsync(new AprovarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status422UnprocessableEntity,
-                title: "Transição de estado invalida",
-                detail: resultado.ErrorMensage,
-                extensions: new Dictionary<string, object?>
-                {
-                    ["errorCode"] = resultado.ErrorCode
-                });
-        }
+            return FalhaNegocio(resultado, "Validação do pedido falhou");
+
         return NoContent();
     }
 
@@ -184,16 +153,8 @@ public class PedidoController : ControllerBase
         var resultado = await _dispacher.SendAsync(new ProcessarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status422UnprocessableEntity,
-                title: "Transição de estado invalida",
-                detail: resultado.ErrorMensage,
-                extensions: new Dictionary<string, object?>
-                {
-                    ["errorCode"] = resultado.ErrorCode
-                });
-        }
+            return FalhaNegocio(resultado, "Validação do pedido falhou");
+
         return NoContent();
     }
 
@@ -201,18 +162,10 @@ public class PedidoController : ControllerBase
     public async Task<IActionResult> Enviar(Guid id)
     {
         var resultado = await _dispacher.SendAsync(new EnviarPedidoCommand(id));
-
+        
         if (!resultado.IsSuccess)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status422UnprocessableEntity,
-                title: "Transição de estado invalida",
-                detail: resultado.ErrorMensage,
-                extensions: new Dictionary<string, object?>
-                {
-                    ["errorCode"] = resultado.ErrorCode
-                });
-        }
+            return FalhaNegocio(resultado, "Validação do pedido falhou");
+
         return NoContent();
     }
 
@@ -222,16 +175,20 @@ public class PedidoController : ControllerBase
         var resultado = await _dispacher.SendAsync(new EntregarPedidoCommand(id));
 
         if (!resultado.IsSuccess)
-        {
-            return Problem(
+            return FalhaNegocio(resultado, "Validação do pedido falhou");
+
+        return NoContent();
+    }
+
+    private ObjectResult FalhaNegocio(Result resultado, string titulo)
+    {
+        return Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "Transição de estado invalida",
-                detail: resultado.ErrorMensage,
+                detail: resultado.ErrorMessage,
                 extensions: new Dictionary<string, object?>
                 {
                     ["errorCode"] = resultado.ErrorCode
                 });
-        }
-        return NoContent();
     }
 }

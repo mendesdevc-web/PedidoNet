@@ -23,5 +23,22 @@ namespace PedidosNet.Application.Dispatchers
 
             return await (Task<Result>)method.Invoke(handler, [command])!;
         }
+
+        public async Task<Result<TResult>> SendAsync<TResult>(
+            ICommand<TResult> command)
+        {
+            var handlerType = typeof(ICommandHandler<,>)
+                .MakeGenericType(command.GetType(), typeof(TResult));
+
+            var handler = serviceProvider.GetRequiredService(handlerType);
+
+            var method = handlerType.GetMethod("HandleAsync")
+                ?? throw new InvalidOperationException(
+                    $"O Handler para o Command {command.GetType().Name} " +
+                    "não possui o método HandleAsync.");
+
+            return await (Task<Result<TResult>>)method.Invoke(
+                handler, [command])!;
+        }
     }
 }

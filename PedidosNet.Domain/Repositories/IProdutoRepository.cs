@@ -5,9 +5,8 @@ using System.Text;
 
 namespace PedidosNet.Domain.Repositories
 {
-    public interface IPedidoRepositoriy
+    public interface IProdutoRepository
     {
-        Task<Pedido?> ObterPorIdAsnyc(Guid pedidoId);
-        Task AtualizarAsnyc(Pedido pedido);
+        Task<IReadOnlyCollection<Produto>> ObterPorIdsAsync(IReadOnlyCollection<Guid> produtoIds);
     }
 }

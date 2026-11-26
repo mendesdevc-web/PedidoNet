@@ -45,7 +45,7 @@ builder.Services.AddScoped<LimiteCreditoHandler>();
 
 builder.Services.AddScoped<PedidoValidationChain>();
 
-builder.Services.AddScoped<IPedidoRepositoriy, PedidoRepository>();
+builder.Services.AddScoped<IPedidoRepository, PedidoRepository>();
 
 
 builder.Services.AddScoped<ICommandHandler<AprovarPedidoCommand>, AprovarPedidoHandler>();
@@ -53,7 +53,12 @@ builder.Services.AddScoped<ICommandHandler<ProcessarPedidoCommand>, ProcessarPed
 builder.Services.AddScoped<ICommandHandler<EnviarPedidoCommand>, EnviarPedidoHandler>();
 builder.Services.AddScoped<ICommandHandler<EntregarPedidoCommand>, EntregarPedidoHandler>();
 
+builder.Services.AddScoped<ICommandHandler<CriarPedidoCommand, Guid>, CriarPedidoHandler>();
+
 builder.Services.AddScoped<IDispatcher, Dispatcher>();
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 var app = builder.Build();
 

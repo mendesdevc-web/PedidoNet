@@ -25,7 +25,7 @@ public class Pedido
         Total = Itens.Sum(i => i.Preco * i.Quantidade);
     }
     
-    public void AplicarDesconto( IEnumerable<IDescontoStrategy> Strategies)
+    public void AplicarDescontos( IEnumerable<IDescontoStrategy> Strategies)
     {
         foreach (var strategy in Strategies)
         {

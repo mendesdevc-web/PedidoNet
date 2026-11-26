@@ -7,7 +7,7 @@ using System.Text;
 
 namespace PedidosNet.Application.Handlers
 {
-    public sealed class EntregarPedidoHandler(IPedidoRepositoriy repositoriy) : ICommandHandler<EntregarPedidoCommand>
+    public sealed class EntregarPedidoHandler(IPedidoRepository repositoriy) : ICommandHandler<EntregarPedidoCommand>
     {
         public async Task<Result> HandleAsnync(EntregarPedidoCommand command)
         {
